@@ -1,0 +1,17 @@
+# Cloud-Native Gauntlet Local DNS Configuration
+# Add these entries to your /etc/hosts file for local development
+
+# Master node
+${master_ip} cn-master.local
+
+# Worker nodes (commented out for single VM setup)
+# ${network_prefix}.11 cn-worker1.local
+# ${network_prefix}.12 cn-worker2.local
+
+# Service endpoints (all pointing to master for now)
+${master_ip} keycloak.local
+${master_ip} gitea.local
+${master_ip} registry.local
+${master_ip} api.local
+${master_ip} argocd.local
+${master_ip} linkerd.local
