@@ -1,186 +1,215 @@
-# ⚔️ Cloud-Native Gauntlet: Your Two-Week Ordeal ⚔️
+# Cloud-Native Gauntlet: Your Two-Week Ordeal ⚔️
 
-## 🎯 Project Status: Day 6-7 (Database & Deployment)
+> **"So you thought LPIX 1xx was 'hard'? 😴 That was baby Linux with juice boxes 🍼 nap time 💤, and a coloring book 🖍️."**
 
-**Current Progress**: We have successfully deployed most components to K3s, but need to resolve image availability issues to complete the stack.
+Welcome to the **Cloud-Native Gauntlet** - the challenge nobody asked for but everybody deserves! This project implements a complete cloud-native application stack running entirely offline on your local machine.
 
-### ✅ Completed Components
-- **K3s Cluster**: Running on Multipass VM (Ubuntu 24.04)
-- **Rust API**: Complete Axum application with JWT auth, models, and routes
-- **Kubernetes Manifests**: App, Keycloak, Gitea, Registry, and CNPG deployments
-- **Local Registry**: Container registry for offline image storage
-- **Documentation**: Architecture docs and Mermaid diagrams
+## 🎯 Objective
 
-### 🔄 Current Status
-- **App Namespace**: Rust API deployed (pending image)
-- **Keycloak Namespace**: Identity service deployed (pending image)
-- **Gitea Namespace**: Git server deployed (pending image)
-- **Registry Namespace**: Local registry running successfully
-- **CNPG System**: Operator deployed but needs troubleshooting
+Build, from scratch, a full-stack cloud-native monstrosity that will:
+- Make Kubernetes weep 😭
+- Make Docker question its career 💼  
+- Make your laptop beg for early retirement 👵
 
-### 🚧 Next Steps
-1. **Resolve Image Issues**: Build and load Rust API image locally
-2. **Complete CNPG**: Fix CloudNativePG operator or use alternative
-3. **Deploy ArgoCD**: Complete GitOps pipeline
-4. **Install Linkerd**: Add service mesh capabilities
-5. **End-to-End Testing**: Validate complete workflow
+## 🏗️ Architecture
 
-## 🏗️ Architecture Overview
-
-### System Components
 ```
-Host Machine (Multipass) → K3s Cluster → Application Stack
-                                    ├── Rust API (Axum + JWT)
-                                    ├── Keycloak (Identity)
-                                    ├── Gitea (Git Server)
-                                    ├── Local Registry
-                                    ├── CloudNativePG
-                                    ├── ArgoCD (GitOps)
-                                    └── Linkerd (Service Mesh)
+┌─────────────────────────────────────────────────────────────┐
+│                    Cloud-Native Gauntlet                    │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │   cn-master │  │ cn-worker1  │  │ cn-worker2  │         │
+│  │   (K3s)     │  │   (K3s)     │  │   (K3s)     │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+├─────────────────────────────────────────────────────────────┤
+│  Services: Keycloak | Gitea | ArgoCD | Linkerd | Registry  │
+│  Database: PostgreSQL (CloudNativePG)                      │
+│  App: Rust API with JWT Auth                               │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Key Features
-- **Offline-First**: All components work without internet
-- **JWT Authentication**: Keycloak-managed tokens
-- **GitOps Pipeline**: Gitea + ArgoCD for continuous deployment
-- **Service Mesh**: Linkerd for mTLS and observability
-- **Idempotent**: Safe to re-run all scripts
-
-## 🚀 Quick Start
+## 🚀 Quick Start (Day 1-2)
 
 ### Prerequisites
-- Linux host with Multipass
-- 16GB RAM, 4 CPUs minimum
-- 50GB free disk space
+- **Vagrant** (latest)
+- **VirtualBox** (latest)
+- **Terraform** (>= 1.3.0)
+- **Ansible** (>= 2.9)
+- **Docker** (latest)
+- **8GB+ RAM** (for VMs)
 
-### 1. Bootstrap Environment
+### One-Command Setup
 ```bash
-# Start Multipass VM
-multipass launch -n k3s
-
-# Bootstrap SSH and Ansible
-bash scripts/multipass_bootstrap.sh k3s $HOME/.ssh/id_ed25519.pub
+# Make it executable and run
+chmod +x scripts/day1-2-setup.sh
+./scripts/day1-2-setup.sh
 ```
 
-### 2. Deploy Infrastructure
-```bash
-# Apply base OS configuration
-ANSIBLE_CONFIG=ansible/ansible.cfg ansible-playbook -i ansible/inventory.ini ansible/playbooks/base.yml
+This script will:
+1. ✅ Check prerequisites
+2. ✅ Generate configuration files
+3. ✅ Setup local DNS
+4. ✅ Pull required images
+5. ✅ Start Vagrant VMs
+6. ✅ Deploy K3s cluster
+7. ✅ Setup local registry
 
-# Deploy application stack
-multipass exec k3s -- sudo k3s kubectl apply -f /home/ubuntu/app-namespace.yaml
-# ... (other manifests)
+### Manual Setup (if you prefer suffering)
+```bash
+# 1. Generate configs
+cd terraform && terraform init && terraform apply
+
+# 2. Start VMs
+vagrant up
+
+# 3. Deploy base system
+cd ansible
+ansible-playbook -i inventory.ini playbooks/base.yml
+
+# 4. Deploy K3s
+ansible-playbook -i inventory.ini playbooks/k3s.yml
 ```
 
-### 3. Check Status
-```bash
-# View all components
-scripts/status-check.sh
+## 📅 The Twelve Trials
 
-# Check specific namespace
-multipass exec k3s -- sudo k3s kubectl -n app get all
+| Day | Task | Status |
+|-----|------|--------|
+| 1-2 | **Summon the Cluster Beasts** | ✅ Ready |
+| 3-4 | **Forge Your Application** | 🔄 Next |
+| 5 | **Containerize Your Pain** | ⏳ Pending |
+| 6-7 | **Database & Deployment** | ⏳ Pending |
+| 8 | **Bow Before Keycloak** | ⏳ Pending |
+| 9-10 | **Embrace the GitOps Curse** | ⏳ Pending |
+| 11 | **Enter the Mesh** | ⏳ Pending |
+| 12 | **Write Your Epic** | ⏳ Pending |
+
+## 🎮 Access Your Cluster
+
+```bash
+# SSH into master node
+vagrant ssh cn-master
+
+# Check cluster status
+kubectl get nodes
+
+# Access services (after Day 8)
+curl http://keycloak.local/realms/master
+curl http://gitea.local
+curl http://registry.local/v2/_catalog
 ```
 
 ## 📁 Project Structure
 
 ```
 Cloud-Native-Gauntlet/
-├── ansible/           # Infrastructure automation
-├── apps/             # Application source code
-│   └── rust-api/     # Rust API with Axum
-├── k8s/              # Kubernetes manifests
-│   ├── app/          # Rust API deployment
-│   ├── keycloak/     # Identity service
-│   ├── gitea/        # Git server
-│   ├── registry/     # Local container registry
-│   └── argocd/       # GitOps controller
-├── scripts/           # Automation scripts
-├── docs/             # Documentation and diagrams
-│   └── diagrams/     # Mermaid architecture diagrams
-└── terraform/        # Infrastructure as Code
+├── ansible/              # Ansible playbooks & roles
+│   ├── playbooks/        # Base system & K3s deployment
+│   └── roles/           # Reusable Ansible roles
+├── apps/                # Application code
+│   └── rust-api/        # Rust web API with JWT auth
+├── docs/                # Documentation & Mermaid diagrams
+├── k8s/                 # Kubernetes manifests
+│   ├── app/            # Application deployment
+│   ├── keycloak/       # Identity management
+│   ├── gitea/          # Git server
+│   ├── argocd/         # GitOps controller
+│   ├── linkerd/        # Service mesh
+│   └── registry/       # Local Docker registry
+├── scripts/             # Utility scripts
+│   ├── day1-2-setup.sh # Complete Day 1-2 setup
+│   ├── bootstrap.sh    # Full bootstrap script
+│   └── pull-images.sh  # Offline image preparation
+├── terraform/           # Infrastructure as Code
+│   ├── main.tf         # Main configuration
+│   ├── variables.tf    # Input variables
+│   └── *.tmpl          # Template files
+└── Vagrantfile         # VM configuration
 ```
 
-## 🔧 Troubleshooting
+## 🔧 Configuration
 
-### Common Issues
-1. **ImagePullBackOff**: Images not available in local registry
-2. **CNPG CrashLoop**: Operator compatibility issues with K3s 1.32
-3. **Network Timeouts**: External registry access blocked (expected for offline mode)
+### VM Resources
+- **Master**: 6GB RAM, 3 CPUs (runs all services)
+- **Workers**: 4GB RAM, 2 CPUs each
+- **Network**: 192.168.56.0/24
 
-### Solutions
-- Use local registry for all images
-- Build images locally with podman/docker
-- Check pod logs: `kubectl logs <pod-name> -n <namespace>`
-- Verify storage: `kubectl get pvc -A`
+### Services
+- **K3s**: v1.28.2+k3s1
+- **Keycloak**: 24.0.5
+- **PostgreSQL**: 15
+- **Gitea**: latest
+- **ArgoCD**: latest
+- **Linkerd**: stable-2.14.0
 
-## 📊 Progress Tracking
-
-### Day 1-2: ✅ Cluster Setup
-- [x] Multipass VM creation
-- [x] K3s installation
-- [x] Base OS configuration
-
-### Day 3-4: ✅ Application Development
-- [x] Rust API with Axum
-- [x] JWT authentication
-- [x] Task management endpoints
-
-### Day 5: 🔄 Containerization
-- [x] Dockerfile creation
-- [x] Local registry setup
-- [ ] Image building and loading
-
-### Day 6-7: 🔄 Database & Deployment
-- [x] Kubernetes manifests
-- [x] Component deployment
-- [ ] Image availability resolution
-
-### Day 8: 🔄 Keycloak
-- [x] Deployment manifests
-- [ ] Service configuration
-- [ ] JWT integration
-
-### Day 9-10: 🔄 GitOps
-- [x] Gitea deployment
-- [ ] ArgoCD setup
-- [ ] Pipeline configuration
-
-### Day 11: 🔄 Service Mesh
-- [ ] Linkerd installation
-- [ ] mTLS configuration
-- [ ] Observability setup
-
-### Day 12: 🔄 Documentation
-- [x] Architecture documentation
-- [x] Mermaid diagrams
-- [ ] Final testing and validation
-
-## 🎭 Comic Relief
-
-> "In YAML, no one can hear you scream" 😱📄
-> 
-> "kubectl describe is your friend" 🙏
-> 
-> "When in doubt, check the logs" 🔍
-
-## 📚 Resources
-
-- [K3s Documentation](https://docs.k3s.io/)
-- [Keycloak Documentation](https://www.keycloak.org/documentation)
-- [Linkerd Documentation](https://linkerd.io/docs/)
-- [ArgoCD Documentation](https://argo-cd.readthedocs.io/)
-
-## 🏆 Victory Conditions
+## 🎯 Victory Conditions
 
 - [ ] Entire system runs offline
-- [ ] Infra + configs are idempotent
+- [ ] Infrastructure is idempotent
 - [ ] GitOps pipeline works
-- [ ] Keycloak protects app
-- [ ] Linkerd provides mTLS
-- [ ] Complete documentation included
+- [ ] Keycloak protects application
+- [ ] Linkerd meshes services
+- [ ] Documentation complete
+- [ ] Mermaid diagrams included
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**VMs won't start:**
+```bash
+# Check VirtualBox is running
+# Ensure VT-x/AMD-V is enabled in BIOS
+vagrant reload
+```
+
+**K3s cluster not ready:**
+```bash
+vagrant ssh cn-master
+sudo systemctl status k3s
+sudo journalctl -u k3s -f
+```
+
+**DNS resolution issues:**
+```bash
+# Check /etc/hosts entries
+cat scripts/hosts
+# Add manually if needed
+```
+
+### Reset Everything
+```bash
+# Nuclear option - start over
+vagrant destroy -f
+rm -rf .vagrant terraform/.terraform
+./scripts/day1-2-setup.sh
+```
+
+## 📚 Documentation
+
+- [Architecture Overview](docs/architecture.md)
+- [Authentication Flow](docs/diagrams/auth-flow.mmd)
+- [GitOps Pipeline](docs/diagrams/gitops-pipeline.mmd)
+
+## 🎭 The Suffering
+
+This project is designed to be:
+- **Offline-first**: No internet required after setup
+- **Idempotent**: Run multiple times safely
+- **Educational**: Learn cloud-native patterns
+- **Painful**: Because learning should hurt 😈
+
+## 🏆 Epilogue
+
+When (if) you crawl out of this gauntlet, you'll have:
+- Scars 💔 from `kubectl describe`
+- PTSD 😭 from `docker ps`
+- Hatred 😡 of YAML indentation errors
+- Respect 🐍 from Python developers
+
+That hatred fuels victory. Enough to conquer LPIC 2XX, CKAD, and maybe the mythical Carrie Anne Certification 👸.
 
 ---
 
-**Remember**: This is not a cozy group project. Each of you must suffer alone, staring at logs like hieroglyphics. But that hatred fuels victory! 🔥
+**Now go 🙏. May your YAMLs align, may your pods stay Running, and may you forever remember: `kubectl describe` 👷**
 
-*Now go forth and conquer the Cloud-Native Gauntlet!* ⚔️
+**Dismissed. 👊**
