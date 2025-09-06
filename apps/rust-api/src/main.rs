@@ -1,4 +1,8 @@
 use axum::{
+    extract::Request,
+    http::{HeaderMap, StatusCode},
+    middleware,
+    response::Response,
     routing::{get, post},
     Router,
 };
@@ -7,6 +11,7 @@ use tower_http::cors::CorsLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod auth;
+mod keycloak;
 mod models;
 mod routes;
 
@@ -26,9 +31,10 @@ async fn main() {
     // Build our application with a route
     let app = Router::new()
         .route("/health", get(health_check))
+        .route("/api/auth/login", post(routes::auth::login))
         .route("/api/tasks", get(routes::tasks::list_tasks))
         .route("/api/tasks", post(routes::tasks::create_task))
-        .route("/api/auth/login", post(routes::auth::login))
+        .route_layer(middleware::from_fn(auth_middleware))
         .layer(cors);
 
     // Run it
@@ -41,4 +47,40 @@ async fn main() {
 
 async fn health_check() -> &'static str {
     "OK"
+}
+
+async fn auth_middleware(
+    headers: HeaderMap,
+    request: Request,
+    next: middleware::Next,
+) -> Result<Response, StatusCode> {
+    // Skip auth for health check and login endpoints
+    let path = request.uri().path();
+    if path == "/health" || path == "/api/auth/login" {
+        return Ok(next.run(request).await);
+    }
+
+    // Extract Authorization header
+    let auth_header = headers
+        .get("Authorization")
+        .and_then(|header| header.to_str().ok())
+        .ok_or(StatusCode::UNAUTHORIZED)?;
+
+    // Check if it's a Bearer token
+    if !auth_header.starts_with("Bearer ") {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
+    let token = &auth_header[7..]; // Remove "Bearer " prefix
+
+    // For now, we'll do basic token validation
+    // In production, you'd validate against Keycloak's public key
+    if token.is_empty() {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
+    // TODO: Add proper Keycloak JWT validation here
+    // For now, we'll accept any non-empty token
+    
+    Ok(next.run(request).await)
 }
