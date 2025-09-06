@@ -71,7 +71,8 @@ pub struct KeycloakKey {
     pub kid: String,
     pub kty: String,
     pub alg: String,
-    pub use: String,
+    #[serde(rename = "use")]
+    pub key_use: String,
     pub n: String,
     pub e: String,
 }
