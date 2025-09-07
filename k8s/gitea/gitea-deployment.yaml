@@ -56,9 +56,9 @@ spec:
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /api/v1/version
+            path: /
             port: 3000
-          initialDelaySeconds: 5
+          initialDelaySeconds: 10
           periodSeconds: 5
       volumes:
       - name: gitea-data
