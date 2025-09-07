@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 COPY . .
 
 # Install build dependencies
-RUN apk add --no-cache musl-dev
+RUN apk add --no-cache musl-dev openssl-dev pkgconfig
 
 # Build the application
 RUN cargo build --release
