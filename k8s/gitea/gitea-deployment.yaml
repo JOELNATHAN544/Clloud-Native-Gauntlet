@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea
+  namespace: gitea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitea
+  template:
+    metadata:
+      labels:
+        app: gitea
+    spec:
+      containers:
+      - name: gitea
+        image: gitea/gitea:1.21
+        ports:
+        - containerPort: 3000
+        - containerPort: 222
+        env:
+        - name: GITEA__database__DB_TYPE
+          value: "sqlite3"
+        - name: GITEA__database__PATH
+          value: "/data/gitea/gitea.db"
+        - name: GITEA__server__DOMAIN
+          value: "gitea.local"
+        - name: GITEA__server__SSH_DOMAIN
+          value: "gitea.local"
+        - name: GITEA__server__HTTP_PORT
+          value: "3000"
+        - name: GITEA__server__ROOT_URL
+          value: "http://gitea.local/"
+        - name: GITEA__service__DISABLE_REGISTRATION
+          value: "false"
+        - name: GITEA__security__INSTALL_LOCK
+          value: "false"
+        - name: GITEA__admin__DISABLE_REGULAR_ORG_CREATION
+          value: "false"
+        volumeMounts:
+        - name: gitea-data
+          mountPath: /data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/version
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/v1/version
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: gitea-data
+        persistentVolumeClaim:
+          claimName: gitea-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea
+  namespace: gitea
+spec:
+  selector:
+    app: gitea
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+  - name: ssh
+    port: 222
+    targetPort: 222
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitea-pvc
+  namespace: gitea
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitea
