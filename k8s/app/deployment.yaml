@@ -15,14 +15,12 @@ spec:
     spec:
       containers:
         - name: rust-api
-          image: localhost:5000/rust-api:latest
+          image: localhost:5000/cloud-gauntlet-api:latest
           ports:
             - containerPort: 3000
-          env:
-            - name: RUST_LOG
-              value: "info"
-            - name: JWT_SECRET
-              value: "your-secret-key-change-in-production"
+          envFrom:
+            - configMapRef:
+                name: rust-api-config
           resources:
             requests:
               memory: "64Mi"
