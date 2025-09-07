@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rust-api-config
+  namespace: app
+data:
+  DATABASE_URL: "postgresql://app_user:cloud_gauntlet_password@postgres.database.svc.cluster.local:5432/cloud_gauntlet"
+  RUST_LOG: "info"
+  JWT_SECRET: "your-secret-key-change-in-production"
