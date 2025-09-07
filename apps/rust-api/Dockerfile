@@ -1,25 +1,26 @@
 # Build stage
-FROM docker.io/library/rust:1.85-alpine AS builder
+FROM docker.io/library/rust:1.85-slim AS builder
 
 WORKDIR /usr/src/app
 COPY . .
 
 # Install build dependencies
-RUN apk add --no-cache musl-dev openssl-dev pkgconfig
-
-# Set environment variables for static linking
-ENV OPENSSL_STATIC=1
-ENV OPENSSL_DIR=/usr
-ENV PKG_CONFIG_ALL_STATIC=1
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Build the application
 RUN cargo build --release
 
 # Runtime stage
-FROM docker.io/library/alpine:latest
+FROM docker.io/library/debian:bookworm-slim
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates openssl
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libssl3 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/local/bin
 
@@ -27,8 +28,8 @@ WORKDIR /usr/local/bin
 COPY --from=builder /usr/src/app/target/release/cloud-gauntlet-api .
 
 # Create non-root user
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+RUN groupadd -g 1001 appgroup && \
+    useradd -u 1001 -g appgroup -s /bin/false appuser
 
 USER appuser
 
