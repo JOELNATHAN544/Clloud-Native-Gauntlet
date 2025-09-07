@@ -11,7 +11,7 @@ use tower_http::cors::CorsLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod auth;
-// mod keycloak; // Temporarily disabled for Day 5
+mod keycloak;
 mod models;
 mod routes;
 
