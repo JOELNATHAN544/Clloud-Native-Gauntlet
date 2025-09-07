@@ -81,3 +81,4 @@ echo "Repositories created successfully!"
 echo "Gitea URL: $GITEA_URL"
 echo "Admin: $ADMIN_USER / $ADMIN_PASSWORD"
 echo "Repositories: app-source, infra"
+
