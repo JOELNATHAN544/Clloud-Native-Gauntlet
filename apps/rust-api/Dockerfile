@@ -1,14 +1,11 @@
 # Build stage
-FROM docker.io/library/rust:1.80-alpine AS builder
+FROM docker.io/library/rust:1.85-alpine AS builder
 
 WORKDIR /usr/src/app
 COPY . .
 
 # Install build dependencies
 RUN apk add --no-cache musl-dev
-
-# Regenerate Cargo.lock to ensure compatibility
-RUN cargo generate-lockfile
 
 # Build the application
 RUN cargo build --release
