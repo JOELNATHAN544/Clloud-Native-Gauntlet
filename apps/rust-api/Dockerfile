@@ -7,6 +7,11 @@ COPY . .
 # Install build dependencies
 RUN apk add --no-cache musl-dev openssl-dev pkgconfig
 
+# Set environment variables for static linking
+ENV OPENSSL_STATIC=1
+ENV OPENSSL_DIR=/usr
+ENV PKG_CONFIG_ALL_STATIC=1
+
 # Build the application
 RUN cargo build --release
 
@@ -14,7 +19,7 @@ RUN cargo build --release
 FROM docker.io/library/alpine:latest
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates openssl
 
 WORKDIR /usr/local/bin
 
