@@ -1,5 +1,5 @@
 use anyhow::Result;
-use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
+use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -86,12 +86,7 @@ pub struct KeycloakClient {
 }
 
 impl KeycloakClient {
-    pub fn new(
-        base_url: String,
-        realm: String,
-        client_id: String,
-        client_secret: Option<String>,
-    ) -> Self {
+    pub fn new(base_url: String, realm: String, client_id: String, client_secret: Option<String>) -> Self {
         Self {
             client: Client::new(),
             base_url,
@@ -113,19 +108,17 @@ impl KeycloakClient {
             form_data.push(("client_secret", secret));
         }
 
-        let url = format!(
-            "{}/realms/{}/protocol/openid-connect/token",
-            self.base_url, self.realm
-        );
-
-        let response = self.client.post(&url).form(&form_data).send().await?;
+        let url = format!("{}/realms/{}/protocol/openid-connect/token", self.base_url, self.realm);
+        
+        let response = self.client
+            .post(&url)
+            .form(&form_data)
+            .send()
+            .await?;
 
         if !response.status().is_success() {
             let error_text = response.text().await?;
-            return Err(anyhow::anyhow!(
-                "Keycloak token request failed: {}",
-                error_text
-            ));
+            return Err(anyhow::anyhow!("Keycloak token request failed: {}", error_text));
         }
 
         let token_response: KeycloakTokenResponse = response.json().await?;
@@ -133,13 +126,9 @@ impl KeycloakClient {
     }
 
     pub async fn get_user_info(&self, access_token: &str) -> Result<KeycloakUserInfo> {
-        let url = format!(
-            "{}/realms/{}/protocol/openid-connect/userinfo",
-            self.base_url, self.realm
-        );
-
-        let response = self
-            .client
+        let url = format!("{}/realms/{}/protocol/openid-connect/userinfo", self.base_url, self.realm);
+        
+        let response = self.client
             .get(&url)
             .bearer_auth(access_token)
             .send()
@@ -147,10 +136,7 @@ impl KeycloakClient {
 
         if !response.status().is_success() {
             let error_text = response.text().await?;
-            return Err(anyhow::anyhow!(
-                "Keycloak userinfo request failed: {}",
-                error_text
-            ));
+            return Err(anyhow::anyhow!("Keycloak userinfo request failed: {}", error_text));
         }
 
         let user_info: KeycloakUserInfo = response.json().await?;
@@ -158,33 +144,27 @@ impl KeycloakClient {
     }
 
     pub async fn get_public_key(&self) -> Result<String> {
-        let url = format!(
-            "{}/realms/{}/protocol/openid-connect/certs",
-            self.base_url, self.realm
-        );
-
-        let response = self.client.get(&url).send().await?;
+        let url = format!("{}/realms/{}/protocol/openid-connect/certs", self.base_url, self.realm);
+        
+        let response = self.client
+            .get(&url)
+            .send()
+            .await?;
 
         if !response.status().is_success() {
             let error_text = response.text().await?;
-            return Err(anyhow::anyhow!(
-                "Keycloak certs request failed: {}",
-                error_text
-            ));
+            return Err(anyhow::anyhow!("Keycloak certs request failed: {}", error_text));
         }
 
         let certs: KeycloakCerts = response.json().await?;
-
+        
         // For simplicity, we'll use the first key
         // In production, you should match the 'kid' from the JWT header
         if let Some(key) = certs.keys.first() {
             // Convert RSA public key components to PEM format
             // This is a simplified approach - in production, use a proper JWT library
             // that can handle JWK to PEM conversion
-            Ok(format!(
-                "-----BEGIN PUBLIC KEY-----\n{}\n-----END PUBLIC KEY-----",
-                key.n
-            ))
+            Ok(format!("-----BEGIN PUBLIC KEY-----\n{}\n-----END PUBLIC KEY-----", key.n))
         } else {
             Err(anyhow::anyhow!("No public keys found"))
         }
