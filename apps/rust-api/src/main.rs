@@ -30,6 +30,7 @@ async fn main() {
 
     // Build our application with a route
     let app = Router::new()
+        .route("/", get(health_check))
         .route("/health", get(health_check))
         .route("/api/auth/login", post(routes::auth::login))
         .route("/api/tasks", get(routes::tasks::list_tasks))
