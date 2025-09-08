@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitea-config
+  namespace: gitea
+data:
+  app.ini: |
+    APP_NAME = Cloud Native Gauntlet Gitea
+    RUN_MODE = prod
+    WORK_PATH = /data/gitea
+    RUN_USER = git
+
+    [server]
+    APP_DATA_PATH = /data/gitea
+    DOMAIN = gitea.local
+    SSH_DOMAIN = gitea.local
+    HTTP_PORT = 3000
+    ROOT_URL = http://192.168.56.10:31030/
+    DISABLE_SSH = false
+    SSH_PORT = 22
+    SSH_LISTEN_PORT = 22
+    LFS_START_SERVER = true
+
+    [database]
+    DB_TYPE = sqlite3
+    PATH = /data/gitea/gitea.db
+
+    [repository]
+    ROOT = /data/git/repositories
+
+    [log]
+    MODE = console
+    LEVEL = info
+    ROOT_PATH = /data/gitea/log
+
+    [security]
+    INSTALL_LOCK = true
+    SECRET_KEY = changeme-secret
+
+    [service]
+    DISABLE_REGISTRATION = false
+    REQUIRE_SIGNIN_VIEW = false
+
+
