@@ -13,6 +13,17 @@ spec:
       labels:
         app: gitea
     spec:
+      initContainers:
+      - name: fix-permissions
+        image: busybox:1.36
+        command: ["/bin/sh","-c"]
+        args: ["mkdir -p /data/gitea/log /data/gitea/tmp/local-repo /data/gitea/uploads /data/git/repositories /data/git/lfs && chown -R 1000:1000 /data"]
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+        volumeMounts:
+        - name: gitea-data
+          mountPath: /data
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
@@ -43,7 +54,7 @@ spec:
         - name: GITEA__service__DISABLE_REGISTRATION
           value: "true"
         - name: GITEA__security__INSTALL_LOCK
-          value: "true"
+          value: "false"
         - name: GITEA__admin__DISABLE_REGULAR_ORG_CREATION
           value: "false"
         - name: GITEA_ADMIN_USERNAME
@@ -52,9 +63,20 @@ spec:
           value: "admin123"
         - name: GITEA_ADMIN_EMAIL
           value: "admin@example.com"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 6
         volumeMounts:
         - name: gitea-data
           mountPath: /data
+        - name: gitea-config
+          mountPath: /data/gitea/conf/app.ini
+          subPath: app.ini
         resources:
           requests:
             memory: "256Mi"
@@ -67,6 +89,9 @@ spec:
       - name: gitea-data
         persistentVolumeClaim:
           claimName: gitea-pvc
+      - name: gitea-config
+        configMap:
+          name: gitea-config
 ---
 apiVersion: v1
 kind: Service
