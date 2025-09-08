@@ -14,9 +14,9 @@ spec:
         app: gitea
     spec:
       securityContext:
-        runAsUser: 0
-        runAsGroup: 0
-        fsGroup: 0
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
       - name: gitea
         image: gitea/gitea:1.21
@@ -24,6 +24,10 @@ spec:
         - containerPort: 3000
         - containerPort: 222
         env:
+        - name: USER_UID
+          value: "1000"
+        - name: USER_GID
+          value: "1000"
         - name: GITEA__database__DB_TYPE
           value: "sqlite3"
         - name: GITEA__database__PATH
