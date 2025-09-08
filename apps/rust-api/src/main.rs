@@ -40,7 +40,7 @@ async fn main() {
     // Run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::info!("listening on {}", addr);
-
+    
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
@@ -81,6 +81,6 @@ async fn auth_middleware(
 
     // TODO: Add proper Keycloak JWT validation here
     // For now, we'll accept any non-empty token
-
+    
     Ok(next.run(request).await)
 }
