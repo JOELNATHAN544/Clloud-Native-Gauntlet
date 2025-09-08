@@ -25,13 +25,11 @@ pub async fn list_tasks() -> Json<Vec<Task>> {
             updated_at: chrono::Utc::now(),
         },
     ];
-    
+
     Json(mock_tasks)
 }
 
-pub async fn create_task(
-    Json(payload): Json<CreateTaskRequest>,
-) -> Result<Json<Task>, StatusCode> {
+pub async fn create_task(Json(payload): Json<CreateTaskRequest>) -> Result<Json<Task>, StatusCode> {
     let task = Task {
         id: Uuid::new_v4(),
         title: payload.title,
@@ -41,6 +39,6 @@ pub async fn create_task(
         created_at: chrono::Utc::now(),
         updated_at: chrono::Utc::now(),
     };
-    
+
     Ok(Json(task))
 }
