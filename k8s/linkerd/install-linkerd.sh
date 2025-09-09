@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Installing Linkerd CLI..."
-curl -sL https://run.linkerd.io/install | sh
+echo "Installing Linkerd CLI (with retries)..."
+curl -fsSL --retry 5 --retry-delay 5 https://run.linkerd.io/install | sh
 export PATH=$PATH:$HOME/.linkerd2/bin
 
 echo "Installing Linkerd to K3s cluster..."
