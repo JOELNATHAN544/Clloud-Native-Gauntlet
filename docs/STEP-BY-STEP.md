@@ -102,6 +102,80 @@ This file documents exactly what to do to reproduce the project from scratch on 
 
 6. Create ArgoCD Application (point to infra repo path `k8s/app`) – via UI or manifest.
 
+### CI (GitHub Actions) for app-source
+- File: `apps/rust-api/.github/workflows/ci.yml`
+- What it does: on push/PR, runs `cargo build --release` and `docker build -t cloud-gauntlet-api:ci .`
+- Proof: mirror repo to GitHub (optional) to see green runs, or use the YAML as CI definition evidence.
+
+### Ingress (ingress-nginx) and test
+```bash
+# Install ingress-nginx for baremetal and expose NodePorts
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.3/deploy/static/provider/baremetal/deploy.yaml
+kubectl -n ingress-nginx patch svc ingress-nginx-controller --type='json' \
+  -p='[{"op":"replace","path":"/spec/type","value":"NodePort"},
+       {"op":"add","path":"/spec/ports/0/nodePort","value":30080},
+       {"op":"add","path":"/spec/ports/1/nodePort","value":30443}]'
+
+# Test through ingress
+curl -I -H "Host: api.local" http://192.168.56.10:30080/health   # 200 OK
+```
+
+### GitOps scale proof
+```bash
+git clone http://USER:TOKEN@192.168.56.10:31030/USER/infra.git /tmp/infra-scale
+sed -i 's/^\s*replicas: .*$/  replicas: 2/' /tmp/infra-scale/k8s/app/deployment.yaml
+(cd /tmp/infra-scale && git commit -am "Scale to 2" && git push)
+kubectl -n app get deploy rust-api -w    # watch AVAILABLE go to 2
+```
+
+---
+
+## Day 11: Enter the Mesh (Linkerd)
+
+### Install Linkerd + Gateway API CRDs
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
+curl -fsSL https://run.linkerd.io/install | sh
+export PATH=$PATH:$HOME/.linkerd2/bin
+linkerd check --pre
+linkerd install --crds | kubectl apply -f -
+linkerd install | kubectl apply -f -
+linkerd check
+```
+
+### Install linkerd-viz (observability)
+```bash
+linkerd viz install | kubectl apply -f -
+linkerd viz check
+```
+
+### Enable namespace injection and redeploy
+```bash
+kubectl label ns app linkerd.io/inject=enabled --overwrite
+# Ensure the deployment template has the annotation (defensive)
+kubectl -n app patch deploy rust-api --type='merge' -p '{"spec":{"template":{"metadata":{"annotations":{"linkerd.io/inject":"enabled"}}}}}'
+kubectl -n app rollout restart deploy/rust-api
+kubectl -n app rollout status deploy/rust-api --timeout=300s
+```
+
+### Verify sidecars and mTLS
+```bash
+# Confirm proxy container is present
+kubectl -n app get pods -o jsonpath='{range .items[*]}{.metadata.name}:{range .spec.containers[*]}{.name},{end}{"\n"}{end}'
+
+# Quick tap of requests (shows TLS, paths, etc.)
+linkerd viz tap -n app deploy/rust-api --max-rps 1 --output json | head -n 5
+
+# Optional: open viz dashboard
+linkerd viz dashboard --address 0.0.0.0 --port 31090
+# browse: http://192.168.56.10:31090
+```
+
+Expected results:
+- `linkerd viz check` passes.
+- Pod shows `linkerd-proxy` alongside the app container.
+- Tap output streams JSON lines indicating traffic; TLS fields present (mesh encryption on by default).
+
 ## Current Status
 - K3s cluster up.
 - Rust API built & pushed to Gitea.
