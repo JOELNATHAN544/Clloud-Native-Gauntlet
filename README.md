@@ -7,8 +7,9 @@ Welcome to the **Cloud-Native Gauntlet** - the challenge nobody asked for but ev
 ## 🎯 Objective
 
 Build, from scratch, a full-stack cloud-native monstrosity that will:
+
 - Make Kubernetes weep 😭
-- Make Docker question its career 💼  
+- Make Docker question its career 💼
 - Make your laptop beg for early retirement 👵
 
 ## 🏗️ Architecture
@@ -31,6 +32,7 @@ Build, from scratch, a full-stack cloud-native monstrosity that will:
 ## 🚀 Quick Start (Day 1-2)
 
 ### Prerequisites
+
 - **Vagrant** (latest)
 - **VirtualBox** (latest)
 - **Terraform** (>= 1.3.0)
@@ -39,6 +41,7 @@ Build, from scratch, a full-stack cloud-native monstrosity that will:
 - **8GB+ RAM** (for VMs)
 
 ### One-Command Setup
+
 ```bash
 # Make it executable and run
 chmod +x scripts/day1-2-setup.sh
@@ -46,6 +49,7 @@ chmod +x scripts/day1-2-setup.sh
 ```
 
 This script will:
+
 1. ✅ Check prerequisites
 2. ✅ Generate configuration files
 3. ✅ Setup local DNS
@@ -55,6 +59,7 @@ This script will:
 7. ✅ Setup local registry
 
 ### Manual Setup (if you prefer suffering)
+
 ```bash
 # 1. Generate configs
 cd terraform && terraform init && terraform apply
@@ -72,16 +77,16 @@ ansible-playbook -i inventory.ini playbooks/k3s.yml
 
 ## 📅 The Twelve Trials
 
-| Day | Task | Status |
-|-----|------|--------|
-| 1-2 | **Summon the Cluster Beasts** | ✅ Ready |
-| 3-4 | **Forge Your Application** | 🔄 Next |
-| 5 | **Containerize Your Pain** | ⏳ Pending |
-| 6-7 | **Database & Deployment** | ⏳ Pending |
-| 8 | **Bow Before Keycloak** | ⏳ Pending |
-| 9-10 | **Embrace the GitOps Curse** | ⏳ Pending |
-| 11 | **Enter the Mesh** | ⏳ Pending |
-| 12 | **Write Your Epic** | ⏳ Pending |
+| Day  | Task                          | Status     |
+| ---- | ----------------------------- | ---------- |
+| 1-2  | **Summon the Cluster Beasts** | ✅ Ready   |
+| 3-4  | **Forge Your Application**    | 🔄 Next    |
+| 5    | **Containerize Your Pain**    | ⏳ Pending |
+| 6-7  | **Database & Deployment**     | ⏳ Pending |
+| 8    | **Bow Before Keycloak**       | ⏳ Pending |
+| 9-10 | **Embrace the GitOps Curse**  | ⏳ Pending |
+| 11   | **Enter the Mesh**            | ⏳ Pending |
+| 12   | **Write Your Epic**           | ⏳ Pending |
 
 ## 🎮 Access Your Cluster
 
@@ -129,11 +134,13 @@ Cloud-Native-Gauntlet/
 ## 🔧 Configuration
 
 ### VM Resources
+
 - **Master**: 6GB RAM, 3 CPUs (runs all services)
 - **Workers**: 4GB RAM, 2 CPUs each
 - **Network**: 192.168.56.0/24
 
 ### Services
+
 - **K3s**: v1.28.2+k3s1
 - **Keycloak**: 24.0.5
 - **PostgreSQL**: 15
@@ -156,6 +163,7 @@ Cloud-Native-Gauntlet/
 ### Common Issues
 
 **VMs won't start:**
+
 ```bash
 # Check VirtualBox is running
 # Ensure VT-x/AMD-V is enabled in BIOS
@@ -163,6 +171,7 @@ vagrant reload
 ```
 
 **K3s cluster not ready:**
+
 ```bash
 vagrant ssh cn-master
 sudo systemctl status k3s
@@ -170,6 +179,7 @@ sudo journalctl -u k3s -f
 ```
 
 **DNS resolution issues:**
+
 ```bash
 # Check /etc/hosts entries
 cat scripts/hosts
@@ -177,6 +187,7 @@ cat scripts/hosts
 ```
 
 ### Reset Everything
+
 ```bash
 # Nuclear option - start over
 vagrant destroy -f
@@ -193,6 +204,7 @@ rm -rf .vagrant terraform/.terraform
 ## 🎭 The Suffering
 
 This project is designed to be:
+
 - **Offline-first**: No internet required after setup
 - **Idempotent**: Run multiple times safely
 - **Educational**: Learn cloud-native patterns
@@ -201,6 +213,7 @@ This project is designed to be:
 ## 🏆 Epilogue
 
 When (if) you crawl out of this gauntlet, you'll have:
+
 - Scars 💔 from `kubectl describe`
 - PTSD 😭 from `docker ps`
 - Hatred 😡 of YAML indentation errors
