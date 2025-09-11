@@ -29,7 +29,7 @@
         state: directory
         owner: vagrant
         group: vagrant
-        mode: '0755'
+        mode: "0755"
 
     - name: Copy kubeconfig to vagrant user
       copy:
@@ -37,14 +37,14 @@
         dest: /home/vagrant/.kube/config
         owner: vagrant
         group: vagrant
-        mode: '0600'
+        mode: "0600"
         remote_src: yes
 
     - name: Update kubeconfig server address
       replace:
         path: /home/vagrant/.kube/config
-        regexp: 'https://127.0.0.1:6443'
-        replace: 'https://{{ ansible_default_ipv4.address }}:6443'
+        regexp: "https://127.0.0.1:6443"
+        replace: "https://{{ ansible_default_ipv4.address }}:6443"
 
     - name: Install kubectl
       shell: |
