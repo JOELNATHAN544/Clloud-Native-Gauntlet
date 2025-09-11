@@ -5,10 +5,10 @@ metadata:
   namespace: keycloak
 type: Opaque
 data:
-  KEYCLOAK_ADMIN: YWRtaW4=  # admin
-  KEYCLOAK_ADMIN_PASSWORD: YWRtaW4xMjM=  # admin123
-  KC_DB_USERNAME: a2V5Y2xvYWs=  # keycloak
-  KC_DB_PASSWORD: a2V5Y2xvYWs=  # keycloak
+  KEYCLOAK_ADMIN: YWRtaW4= # admin
+  KEYCLOAK_ADMIN_PASSWORD: YWRtaW4xMjM= # admin123
+  KC_DB_USERNAME: a2V5Y2xvYWs= # keycloak
+  KC_DB_PASSWORD: a2V5Y2xvYWs= # keycloak
 ---
 apiVersion: apps/v1
 kind: Deployment
