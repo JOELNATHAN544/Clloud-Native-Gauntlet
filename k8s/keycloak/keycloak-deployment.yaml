@@ -16,54 +16,54 @@ spec:
         app: keycloak
     spec:
       containers:
-      - name: keycloak
-        image: quay.io/keycloak/keycloak:24.0.5
-        args: ["start-dev"]
-        ports:
-        - containerPort: 8080
-        env:
-        - name: KEYCLOAK_ADMIN
-          value: "admin"
-        - name: KEYCLOAK_ADMIN_PASSWORD
-          value: "admin123"
-        - name: KC_DB
-          value: "postgres"
-        - name: KC_DB_URL
-          value: "jdbc:postgresql://keycloak-db.keycloak.svc.cluster.local:5432/keycloak"
-        - name: KC_DB_USERNAME
-          value: "keycloak_user"
-        - name: KC_DB_PASSWORD
-          value: "keycloak_password"
-        - name: KC_HOSTNAME
-          value: "keycloak.local"
-        - name: KC_HTTP_ENABLED
-          value: "true"
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health/live
-            port: 8080
-          initialDelaySeconds: 60
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /health/ready
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        volumeMounts:
-        - name: keycloak-data
-          mountPath: /opt/keycloak/data
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:24.0.5
+          args: ["start-dev"]
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KEYCLOAK_ADMIN
+              value: "admin"
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: "admin123"
+            - name: KC_DB
+              value: "postgres"
+            - name: KC_DB_URL
+              value: "jdbc:postgresql://keycloak-db.keycloak.svc.cluster.local:5432/keycloak"
+            - name: KC_DB_USERNAME
+              value: "keycloak_user"
+            - name: KC_DB_PASSWORD
+              value: "keycloak_password"
+            - name: KC_HOSTNAME
+              value: "keycloak.local"
+            - name: KC_HTTP_ENABLED
+              value: "true"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          volumeMounts:
+            - name: keycloak-data
+              mountPath: /opt/keycloak/data
       volumes:
-      - name: keycloak-data
-        persistentVolumeClaim:
-          claimName: keycloak-pvc
+        - name: keycloak-data
+          persistentVolumeClaim:
+            claimName: keycloak-pvc
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -87,7 +87,7 @@ metadata:
     app: keycloak
 spec:
   ports:
-  - port: 8080
-    targetPort: 8080
+    - port: 8080
+      targetPort: 8080
   selector:
     app: keycloak
