@@ -40,3 +40,5 @@ data:
     [service]
     DISABLE_REGISTRATION = false
     REQUIRE_SIGNIN_VIEW = false
+
+
