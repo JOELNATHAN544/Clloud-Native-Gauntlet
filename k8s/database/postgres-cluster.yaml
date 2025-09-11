@@ -5,7 +5,7 @@ metadata:
   namespace: database
 spec:
   instances: 1
-  
+
   postgresql:
     parameters:
       max_connections: "200"
