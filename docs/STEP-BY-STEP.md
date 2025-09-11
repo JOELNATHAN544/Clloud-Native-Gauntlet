@@ -3,15 +3,12 @@
 This file documents exactly what to do to reproduce the project from scratch on a fresh machine, in the same order we executed it.
 
 ## Day 1–2: Cluster Bootstrap (Vagrant + Terraform + Ansible)
-
 1. Prereqs: Vagrant, VirtualBox, Terraform >=1.3, Ansible >=2.9, Docker.
 2. One-command setup:
-
    ```bash
    chmod +x scripts/day1-2-setup.sh
    ./scripts/day1-2-setup.sh
    ```
-
    What it does:
    - Generates configs (Ansible inventory, hosts, image pull script)
    - Adds local DNS entries for services
@@ -27,7 +24,6 @@ This file documents exactly what to do to reproduce the project from scratch on 
    ```
 
 ## Day 3–4: Build the Rust API
-
 1. Code location: `apps/rust-api` (Axum-based with JWT auth scaffolding).
 2. Local run (optional):
    ```bash
@@ -37,7 +33,6 @@ This file documents exactly what to do to reproduce the project from scratch on 
 3. Prepare Docker image (multi-stage Dockerfile in repo).
 
 ## Day 5: Containerize
-
 1. Build container image using the provided `Dockerfile`:
    ```bash
    cd apps/rust-api
@@ -46,7 +41,6 @@ This file documents exactly what to do to reproduce the project from scratch on 
 2. (Optional offline) Tag/push to local registry on cn-master.
 
 ## Day 6–7: Database & K8s App Manifests
-
 1. Manifests live in `k8s/app` and `k8s/database` (and CNPG if used).
 2. Apply app namespace, service, deployment, and ingress (when ingress is present):
    ```bash
@@ -54,7 +48,6 @@ This file documents exactly what to do to reproduce the project from scratch on 
    ```
 
 ## Day 8: Keycloak
-
 1. Keycloak manifests under `k8s/keycloak/` (minimal/simple variants included).
 2. Deploy minimal Keycloak and DB (if not already running):
    ```bash
@@ -66,7 +59,6 @@ This file documents exactly what to do to reproduce the project from scratch on 
    ```
 
 ## Day 9–10: GitOps – Gitea + ArgoCD
-
 1. Gitea (final working approach)
    - Deploy simple manifests:
      ```bash
@@ -76,7 +68,6 @@ This file documents exactly what to do to reproduce the project from scratch on 
    - Complete installer, create admin, generate Personal Access Token (PAT).
 
 2. Create repos in Gitea (app-source, infra):
-
    ```bash
    # Replace TOKEN with your PAT
    GITEA=http://192.168.56.10:31030
@@ -87,7 +78,6 @@ This file documents exactly what to do to reproduce the project from scratch on 
    ```
 
 3. Push Rust API to app-source:
-
    ```bash
    cd apps/rust-api
    git init -b main
@@ -97,7 +87,6 @@ This file documents exactly what to do to reproduce the project from scratch on 
    ```
 
 4. GitOps repo population:
-
    ```bash
    git clone http://USER:TOKEN@192.168.56.10:31030/USER/infra.git /tmp/infra
    rsync -a k8s/app/ /tmp/infra/k8s/app/
@@ -105,24 +94,20 @@ This file documents exactly what to do to reproduce the project from scratch on 
    ```
 
 5. ArgoCD (lightweight server-only demo):
-
    ```bash
    vagrant ssh cn-master -c "kubectl apply -f /vagrant/k8s/argocd/namespace.yaml && kubectl apply -f /vagrant/k8s/argocd/deployment.yaml"
    vagrant ssh cn-master -c "kubectl -n argocd get pods"
    ```
-
    - If PVC causes Pending, switch to emptyDir in `k8s/argocd/deployment.yaml` volumes.
 
 6. Create ArgoCD Application (point to infra repo path `k8s/app`) – via UI or manifest.
 
 ### CI (GitHub Actions) for app-source
-
 - File: `apps/rust-api/.github/workflows/ci.yml`
 - What it does: on push/PR, runs `cargo build --release` and `docker build -t cloud-gauntlet-api:ci .`
 - Proof: mirror repo to GitHub (optional) to see green runs, or use the YAML as CI definition evidence.
 
 ### Ingress (ingress-nginx) and test
-
 ```bash
 # Install ingress-nginx for baremetal and expose NodePorts
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.3/deploy/static/provider/baremetal/deploy.yaml
@@ -136,7 +121,6 @@ curl -I -H "Host: api.local" http://192.168.56.10:30080/health   # 200 OK
 ```
 
 ### GitOps scale proof
-
 ```bash
 git clone http://USER:TOKEN@192.168.56.10:31030/USER/infra.git /tmp/infra-scale
 sed -i 's/^\s*replicas: .*$/  replicas: 2/' /tmp/infra-scale/k8s/app/deployment.yaml
@@ -149,7 +133,6 @@ kubectl -n app get deploy rust-api -w    # watch AVAILABLE go to 2
 ## Day 11: Enter the Mesh (Linkerd)
 
 ### Install Linkerd + Gateway API CRDs
-
 ```bash
 kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
 curl -fsSL https://run.linkerd.io/install | sh
@@ -161,14 +144,12 @@ linkerd check
 ```
 
 ### Install linkerd-viz (observability)
-
 ```bash
 linkerd viz install | kubectl apply -f -
 linkerd viz check
 ```
 
 ### Enable namespace injection and redeploy
-
 ```bash
 kubectl label ns app linkerd.io/inject=enabled --overwrite
 # Ensure the deployment template has the annotation (defensive)
@@ -178,7 +159,6 @@ kubectl -n app rollout status deploy/rust-api --timeout=300s
 ```
 
 ### Verify sidecars and mTLS
-
 ```bash
 # Confirm proxy container is present
 kubectl -n app get pods -o jsonpath='{range .items[*]}{.metadata.name}:{range .spec.containers[*]}{.name},{end}{"\n"}{end}'
@@ -192,13 +172,11 @@ linkerd viz dashboard --address 0.0.0.0 --port 31090
 ```
 
 Expected results:
-
 - `linkerd viz check` passes.
 - Pod shows `linkerd-proxy` alongside the app container.
 - Tap output streams JSON lines indicating traffic; TLS fields present (mesh encryption on by default).
 
 ## Current Status
-
 - K3s cluster up.
 - Rust API built & pushed to Gitea.
 - Gitea operational and reachable at NodePort (with port-forward fallback).
@@ -206,7 +184,6 @@ Expected results:
 - ArgoCD server deployed and being finalized for sync.
 
 ## Next Steps
-
 - Finalize ArgoCD Application and verify sync/health.
 - Add Linkerd (Day 11) and update manifests.
 - Harden Keycloak integration and JWT validation.
