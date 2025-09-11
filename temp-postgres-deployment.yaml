@@ -10,9 +10,9 @@ metadata:
   namespace: database
 type: Opaque
 data:
-  POSTGRES_DB: a2V5Y2xvYWs=  # keycloak
-  POSTGRES_USER: a2V5Y2xvYWs=  # keycloak
-  POSTGRES_PASSWORD: a2V5Y2xvYWs=  # keycloak
+  POSTGRES_DB: a2V5Y2xvYWs= # keycloak
+  POSTGRES_USER: a2V5Y2xvYWs= # keycloak
+  POSTGRES_PASSWORD: a2V5Y2xvYWs= # keycloak
 ---
 apiVersion: apps/v1
 kind: Deployment
