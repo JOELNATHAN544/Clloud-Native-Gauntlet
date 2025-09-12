@@ -50,3 +50,4 @@ echo "2. Configure local registry"
 echo "3. Deploy ArgoCD for GitOps"
 echo "4. Install Linkerd service mesh"
 echo "5. Test end-to-end functionality"
+
