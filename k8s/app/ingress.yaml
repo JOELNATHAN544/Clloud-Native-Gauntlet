@@ -5,6 +5,7 @@ metadata:
   namespace: app
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   rules:
     - host: api.local
