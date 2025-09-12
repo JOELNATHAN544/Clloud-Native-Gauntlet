@@ -13,6 +13,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+
 log_info() {
     echo -e "\033[0;32m[INFO]\033[0m $1"
 }
