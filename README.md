@@ -99,126 +99,74 @@ kubectl get applications -n argocd
 linkerd viz stat deployments -n app
 ```
 
-## 📁 Project Structure
+## 🔄 Reset Everything
 
-```
-Cloud-Native-Gauntlet/
-├── ansible/              # Ansible playbooks & roles
-│   ├── playbooks/        # Base system & K3s deployment
-│   └── roles/           # Reusable Ansible roles
-├── apps/                # Application code
-│   └── rust-api/        # Rust web API with JWT auth
-├── docs/                # Documentation & Mermaid diagrams
-├── k8s/                 # Kubernetes manifests
-│   ├── app/            # Application deployment
-│   ├── keycloak/       # Identity management
-│   ├── gitea/          # Git server
-│   ├── argocd/         # GitOps controller
-│   ├── linkerd/        # Service mesh
-│   └── registry/       # Local Docker registry
-├── scripts/             # Utility scripts
-│   ├── day1-2-setup.sh # Complete Day 1-2 setup
-│   ├── bootstrap.sh    # Full bootstrap script
-│   └── pull-images.sh  # Offline image preparation
-├── terraform/           # Infrastructure as Code
-│   ├── main.tf         # Main configuration
-│   ├── variables.tf    # Input variables
-│   └── *.tmpl          # Template files
-└── Vagrantfile         # VM configuration
+If you need to start over or something goes wrong:
+
+```bash
+# Nuclear option - destroy everything and start fresh
+vagrant destroy -f
+rm -rf .vagrant
+
+# Run the setup script again
+./scripts/setup-cluster.sh
 ```
 
-## 🔧 Configuration
+## 🎯 What You'll Have
 
-### VM Resources
+After running the setup script, you'll have a complete cloud-native stack with:
 
-- **Master**: 6GB RAM, 3 CPUs (runs all services)
-- **Workers**: 4GB RAM, 2 CPUs each
-- **Network**: 192.168.56.0/24
-
-### Services
-
-- **K3s**: v1.28.2+k3s1
-- **Keycloak**: 24.0.5
-- **PostgreSQL**: 15
-- **Gitea**: latest
-- **ArgoCD**: latest
-- **Linkerd**: stable-2.14.0
-
-## 🎯 Victory Conditions
-
-- [ ] Entire system runs offline
-- [ ] Infrastructure is idempotent
-- [ ] GitOps pipeline works
-- [ ] Keycloak protects application
-- [ ] Linkerd meshes services
-- [ ] Documentation complete
-- [ ] Mermaid diagrams included
+- ✅ **Kubernetes cluster** with 3 nodes
+- ✅ **GitOps pipeline** (push to git → auto-deploy)
+- ✅ **Service mesh** with mTLS encryption
+- ✅ **Identity management** with Keycloak
+- ✅ **Observability** with Linkerd dashboard
+- ✅ **CI/CD** with Gitea Actions
+- ✅ **Database** with PostgreSQL
+- ✅ **Container registry** for images
+- ✅ **Rust API** application deployed and meshed
 
 ## 🆘 Troubleshooting
 
-### Common Issues
-
 **VMs won't start:**
-
 ```bash
-# Check VirtualBox is running
-# Ensure VT-x/AMD-V is enabled in BIOS
+# Ensure VirtualBox is running and VT-x/AMD-V is enabled
 vagrant reload
 ```
 
-**K3s cluster not ready:**
-
+**Services not accessible:**
 ```bash
-vagrant ssh cn-master
-sudo systemctl status k3s
-sudo journalctl -u k3s -f
+# Check if all pods are running
+vagrant ssh -c "kubectl get pods -A"
+
+# Restart the setup script if needed
+./scripts/setup-cluster.sh
 ```
 
-**DNS resolution issues:**
-
+**Dashboard not loading:**
 ```bash
-# Check /etc/hosts entries
-cat scripts/hosts
-# Add manually if needed
-```
-
-### Reset Everything
-
-```bash
-# Nuclear option - start over
-vagrant destroy -f
-rm -rf .vagrant terraform/.terraform
-./scripts/day1-2-setup.sh
+# The script sets up port forwarding automatically
+# Access Linkerd at: http://192.168.56.10:8084
 ```
 
 ## 📚 Documentation
 
-- [Architecture Overview](docs/architecture.md)
-- [Authentication Flow](docs/diagrams/auth-flow.mmd)
-- [GitOps Pipeline](docs/diagrams/gitops-pipeline.mmd)
-
-## 🎭 The Suffering
-
-This project is designed to be:
-
-- **Offline-first**: No internet required after setup
-- **Idempotent**: Run multiple times safely
-- **Educational**: Learn cloud-native patterns
-- **Painful**: Because learning should hurt 😈
-
-## 🏆 Epilogue
-
-When (if) you crawl out of this gauntlet, you'll have:
-
-- Scars 💔 from `kubectl describe`
-- PTSD 😭 from `docker ps`
-- Hatred 😡 of YAML indentation errors
-- Respect 🐍 from Python developers
-
-That hatred fuels victory. Enough to conquer LPIC 2XX, CKAD, and maybe the mythical Carrie Anne Certification 👸.
+- [Final Report](docs/FINAL-REPORT.md)
+- [Step-by-Step Guide](docs/STEP-BY-STEP.md)
+- [Architecture Diagrams](docs/diagrams/)
 
 ---
 
-**Now go 🙏. May your YAMLs align, may your pods stay Running, and may you forever remember: `kubectl describe` 👷**
+## 🏆 The Complete Cloud-Native Experience
 
-**Dismissed. 👊**
+This project gives you hands-on experience with:
+
+- **Infrastructure as Code** (Vagrant, Terraform, Ansible)
+- **Container Orchestration** (Kubernetes/K3s)
+- **GitOps** (ArgoCD + Gitea)
+- **Service Mesh** (Linkerd with mTLS)
+- **Observability** (Metrics, dashboards, tracing)
+- **CI/CD Pipelines** (Gitea Actions)
+- **Security** (JWT auth, mTLS, Keycloak)
+
+**Now go forth and conquer the cloud-native world! 🚀**
