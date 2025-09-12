@@ -1,0 +1,136 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitea-runner-config
+  namespace: gitea
+data:
+  config.yaml: |
+    log:
+      level: info
+    runner:
+      file: .runner
+      capacity: 1
+      timeout: 3h
+      insecure: false
+      fetch_timeout: 5s
+      fetch_interval: 2s
+    cache:
+      enabled: true
+    container:
+      network: ""
+      privileged: false
+      options: ""
+      workdir_parent: ""
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gitea-runner-register
+  namespace: gitea
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: register
+        image: gitea/act_runner:latest
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          # Wait for Gitea to be ready
+          until curl -f http://gitea.gitea.svc.cluster.local:3000/api/v1/version; do
+            echo "Waiting for Gitea..."
+            sleep 5
+          done
+          
+          # Generate registration token via Gitea API
+          TOKEN=$(curl -X POST "http://gitea.gitea.svc.cluster.local:3000/api/v1/admin/runners/registration-token" \
+            -H "Authorization: token ${GITEA_ADMIN_TOKEN}" \
+            -H "Content-Type: application/json" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+          
+          if [ -n "$TOKEN" ]; then
+            echo "Registration token obtained: $TOKEN"
+            kubectl create secret generic gitea-runner-token -n gitea --from-literal=token="$TOKEN" --dry-run=client -o yaml | kubectl apply -f -
+          else
+            echo "Failed to get registration token, using default"
+            kubectl create secret generic gitea-runner-token -n gitea --from-literal=token="default-token" --dry-run=client -o yaml | kubectl apply -f -
+          fi
+        env:
+        - name: GITEA_ADMIN_TOKEN
+          value: "admin-token-placeholder"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea-runner
+  namespace: gitea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitea-runner
+  template:
+    metadata:
+      labels:
+        app: gitea-runner
+    spec:
+      containers:
+      - name: runner
+        image: gitea/act_runner:latest
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          # Wait for registration token secret
+          while [ ! -f /etc/runner-token/token ]; do
+            echo "Waiting for registration token..."
+            sleep 5
+          done
+          
+          TOKEN=$(cat /etc/runner-token/token)
+          
+          # Register runner if not already registered
+          if [ ! -f /data/.runner ]; then
+            echo "Registering runner with token: $TOKEN"
+            act_runner register --instance http://gitea.gitea.svc.cluster.local:3000 --token "$TOKEN" --no-interactive --name "k8s-runner"
+          fi
+          
+          # Start the runner daemon
+          echo "Starting runner daemon..."
+          act_runner daemon --config /etc/gitea-runner/config.yaml
+        volumeMounts:
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+        - name: runner-data
+          mountPath: /data
+        - name: config
+          mountPath: /etc/gitea-runner
+        - name: runner-token
+          mountPath: /etc/runner-token
+        securityContext:
+          privileged: true
+      volumes:
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+      - name: runner-data
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: gitea-runner-config
+      - name: runner-token
+        secret:
+          secretName: gitea-runner-token
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea-runner
+  namespace: gitea
+spec:
+  selector:
+    app: gitea-runner
+  ports:
+  - port: 2376
+    targetPort: 2376
